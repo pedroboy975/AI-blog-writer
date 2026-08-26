@@ -97,11 +97,52 @@ um. Senha em JavaScript aparece no código-fonte. Então a divisão é:
 | Actions `Novo artigo` | escreve o artigo com a chave do cofre | só com permissão de escrita no repositório |
 | merge do PR | publica na página principal | você |
 
-A `ANTHROPIC_API_KEY` fica em **Settings → Secrets and variables → Actions**, nunca no
-navegador. O formulário não chama a API: ele produz texto que você cola no Actions.
+O formulário não chama a API: ele produz texto que você cola no Actions.
 
 O workflow escreve o artigo, roda os lints com checagem de link, regenera as três
 páginas e abre um PR com o relatório no corpo. Nada vai ao ar antes do merge.
+
+### Autenticação sem chave (WIF)
+
+O workflow **não usa `ANTHROPIC_API_KEY`**. Ele pede um JWT ao emissor OIDC do próprio
+GitHub e troca por um token Anthropic de vida curta. Não existe `sk-ant-…` guardado em
+lugar nenhum para vazar, e não há nada para rotacionar.
+
+Configurar, uma vez, no [Console da Claude](https://platform.claude.com/settings/workload-identity-federation):
+**Settings → Workload identity → Connect workload → GitHub Actions**. O assistente cria
+o emissor, a conta de serviço e a regra de federação. Restrinja a regra ao mínimo:
+
+```
+subject_prefix: repo:pedroboy975/AI-blog-writer:ref:refs/heads/main
+audience:       https://api.anthropic.com
+claims:         { repository_owner: pedroboy975, ref: refs/heads/main }
+```
+
+Um `subject_prefix` frouxo como `repo:pedroboy975/*` casa com **todo** repositório da
+conta e, sem restrição de `ref`, também com runs de pull request vindos de fork —
+qualquer um que abra um PR conseguiria um token.
+
+Depois, em **Settings → Secrets and variables → Actions → Variables** deste repositório:
+
+| variável | valor |
+| :--- | :--- |
+| `ANTHROPIC_FEDERATION_RULE_ID` | `fdrl_…` |
+| `ANTHROPIC_ORGANIZATION_ID` | UUID da organização |
+| `ANTHROPIC_SERVICE_ACCOUNT_ID` | `svac_…` |
+| `ANTHROPIC_WORKSPACE_ID` | `wrkspc_…` (só se a regra cobrir mais de um workspace) |
+
+São *Variables*, não *Secrets*: sozinhos não autenticam nada, porque a prova é o JWT
+assinado pelo GitHub.
+
+Duas armadilhas que o workflow checa antes de gastar crédito:
+
+- **`ANTHROPIC_API_KEY` tem precedência sobre federação no SDK.** Uma chave esquecida no
+  ambiente vence calada e a federação nunca é exercitada. O job falha se achar uma.
+- **O JWT do GitHub vale ~5 minutos** e um artigo de 6 seções passa disso. Um laço em
+  segundo plano mantém o arquivo do token fresco; o SDK relê a cada renovação.
+
+Local continua com `ANTHROPIC_API_KEY` no `.env` — WIF precisa de um provedor de
+identidade, e a sua máquina não é um.
 
 `ai-blog create --size curto|medio|longo` escala o orçamento de palavras de cada
 seção; o número de seções não muda, porque isso é o formato do artigo.

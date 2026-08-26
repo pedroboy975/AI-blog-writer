@@ -1,8 +1,11 @@
 # Estudio: recebe o veredito montado em /estudio.html e devolve um Pull Request.
 #
 # O controle de acesso e do GitHub, nao meu: so quem tem permissao de escrita
-# neste repositorio consegue disparar um workflow_dispatch. A ANTHROPIC_API_KEY
-# vive em Settings > Secrets e nunca chega no navegador de ninguem.
+# neste repositorio consegue disparar um workflow_dispatch.
+#
+# Autenticacao sem chave (Workload Identity Federation): o job pede um JWT ao
+# emissor do proprio GitHub, a Anthropic troca por um token de vida curta. Nao
+# existe sk-ant-... guardado em lugar nenhum para vazar ou rotacionar.
 #
 # Aprovar = dar merge no PR. O merge e o que publica na pagina principal.
 name: Novo artigo
@@ -24,6 +27,8 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # Sem isto o GitHub nao emite o JWT e a federacao nem comeca.
+  id-token: write
 
 concurrency:
   group: novo-artigo
@@ -32,6 +37,14 @@ concurrency:
 jobs:
   escrever:
     runs-on: ubuntu-latest
+    env:
+      # IDs de configuracao, nao credenciais: sozinhos nao autenticam nada, porque
+      # a prova e o JWT assinado pelo GitHub. Ficam em Settings > Variables.
+      ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+      ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+      ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+      ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+      ANTHROPIC_IDENTITY_TOKEN_FILE: /tmp/gha-jwt
     steps:
       - uses: actions/checkout@v4
 
@@ -42,16 +55,45 @@ jobs:
 
       - run: npm ci
 
-      # Falhar aqui, com esta frase, e melhor que falhar 40 linhas adiante
-      # com um 401 cru da API.
-      - name: Conferir a chave
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      # Falhar aqui, com estas frases, e melhor que falhar 40 linhas adiante
+      # com um 401 opaco: a API responde "Authentication failed" sem dizer qual
+      # das checagens reprovou.
+      - name: Conferir a federacao
         run: |
-          if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "::error::Falta o secret ANTHROPIC_API_KEY. Settings > Secrets and variables > Actions > New repository secret."
+          faltando=""
+          for v in ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID; do
+            [ -z "${!v}" ] && faltando="$faltando $v"
+          done
+          if [ -n "$faltando" ]; then
+            echo "::error::Faltam variaveis:$faltando. Console da Claude > Settings > Workload identity > Connect workload > GitHub Actions, depois Settings > Secrets and variables > Actions > Variables neste repositorio."
             exit 1
           fi
+          # ANTHROPIC_API_KEY tem precedencia sobre federacao no SDK. Se sobrar
+          # uma no ambiente, ela vence calada e a federacao nunca e exercitada.
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::ANTHROPIC_API_KEY esta definida e tem precedencia sobre a federacao. Remova o secret para o job usar o token de vida curta."
+            exit 1
+          fi
+
+      - name: Pedir o JWT ao GitHub
+        run: |
+          curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://api.anthropic.com" \
+            | jq -er .value > "$ANTHROPIC_IDENTITY_TOKEN_FILE"
+          echo "sub do token: $(cut -d. -f2 "$ANTHROPIC_IDENTITY_TOKEN_FILE" | base64 -d 2>/dev/null | jq -r .sub)"
+
+      # O JWT do GitHub vale ~5 minutos e um artigo de 6 secoes com retentativa
+      # passa disso. O SDK rele o arquivo a cada refresh, entao basta manter o
+      # arquivo fresco. Escrevo em .tmp e movo: mv e atomico, ler pela metade nao.
+      - name: Renovar o JWT em segundo plano
+        run: |
+          nohup bash -c 'while true; do
+            sleep 120
+            curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+              "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://api.anthropic.com" \
+              | jq -er .value > "$ANTHROPIC_IDENTITY_TOKEN_FILE.tmp" \
+              && mv "$ANTHROPIC_IDENTITY_TOKEN_FILE.tmp" "$ANTHROPIC_IDENTITY_TOKEN_FILE"
+          done' > /dev/null 2>&1 &
 
       # O YAML entra por env, nunca interpolado direto no shell: conteudo de
       # formulario dentro de um script e injecao de comando esperando acontecer.
@@ -64,10 +106,11 @@ jobs:
           echo "--- veredito recebido:"
           cat verdicts/_intake.yaml
 
+      # O SDK le as variaveis de federacao do ambiente do job e faz a troca
+      # sozinho na primeira chamada. Nenhuma mudanca no codigo: `new Anthropic()`
+      # continua sendo `new Anthropic()`.
       - name: Escrever o artigo
         id: escrever
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           set -o pipefail
           npx tsx src/cli.ts create verdicts/_intake.yaml --links --size "${{ inputs.tamanho }}" 2>&1 | tee relatorio.txt
