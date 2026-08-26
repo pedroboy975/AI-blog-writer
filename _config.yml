@@ -1,5 +1,5 @@
-# O title e o wordmark no topo de toda pagina. Troque pelo nome do seu blog.
-title: Testado antes de recomendar
+# Fonte unica do nome: wordmark do topo, <title> de toda pagina e o <h1> do indice.
+title: Articles Builder Agent
 description: Reviews de IA e automação com evidência declarada e data de conferência.
 lang: pt-BR
 # Site de projeto (github.io/<repo>) precisa de baseurl, senao todo link cai em 404

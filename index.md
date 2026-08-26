@@ -2,7 +2,7 @@
 title: Artigos
 ---
 
-<h1>Testado antes de recomendar</h1>
+<h1>{{ site.title }}</h1>
 
 <p class="lede">Cada artigo sai de um veredito com evidência declarada. Nada é recomendado sem teste, e toda página mostra a data da última conferência.</p>
 

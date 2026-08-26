@@ -121,7 +121,8 @@ function indexPage(posts: PostRef[]): string {
 
   return [
     '---', 'title: Artigos', '---', '',
-    '<h1>Testado antes de recomendar</h1>', '',
+    // Nome vem do _config.yml, nao daqui: renomear o blog e uma linha, nao duas.
+    '<h1>{{ site.title }}</h1>', '',
     '<p class="lede">Cada artigo sai de um veredito com evidência declarada. Nada é recomendado sem teste, e toda página mostra a data da última conferência.</p>', '',
     // Estado vazio fala com o leitor, nao com quem mantem o repositorio.
     posts.length
