@@ -1,0 +1,78 @@
+# Sonda de federacao. Troca o JWT do GitHub por um token Anthropic e para ai:
+# nao chama /v1/messages, entao nao gasta credito. Serve para fechar a janela
+# de teste do assistente do Console e, depois, para responder "a federacao
+# ainda esta de pe?" sem disparar uma geracao inteira.
+#
+# Le as mesmas Variables que o novo-artigo.yml: um erro de digitacao aparece
+# aqui, num job de segundos, em vez de aparecer no meio de uma geracao paga.
+name: Testar federacao (WIF)
+
+on: workflow_dispatch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  trocar-token:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+      ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+      ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+      ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+    steps:
+      - name: Conferir as Variables
+        run: |
+          faltando=""
+          for v in ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID ANTHROPIC_WORKSPACE_ID; do
+            [ -z "${!v}" ] && faltando="$faltando $v"
+          done
+          if [ -n "$faltando" ]; then
+            echo "::error::Faltam variaveis:$faltando. Settings > Secrets and variables > Actions > aba Variables."
+            exit 1
+          fi
+
+      - name: Pedir o JWT ao GitHub
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const token = await core.getIDToken('https://api.anthropic.com');
+            core.setSecret(token);           // mascara o JWT em qualquer log
+            core.exportVariable('JWT', token);
+
+      # O sub e o claim que mais reprova, porque o final dele muda entre
+      # ref:..., environment:... e pull_request. Imprimir aqui evita adivinhacao:
+      # e so comparar com o subject_prefix da regra.
+      - name: Mostrar os claims que a regra confere
+        run: |
+          echo "$JWT" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{sub, aud, repository, repository_owner, ref, event_name}'
+
+      - name: Trocar por um token Anthropic
+        run: |
+          set -o pipefail
+          RESP=$(curl -sS -w '\n%{http_code}' https://api.anthropic.com/v1/oauth/token \
+            -H "content-type: application/json" \
+            --data @- <<JSON
+          {
+            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "assertion": "$JWT",
+            "federation_rule_id": "$ANTHROPIC_FEDERATION_RULE_ID",
+            "organization_id": "$ANTHROPIC_ORGANIZATION_ID",
+            "service_account_id": "$ANTHROPIC_SERVICE_ACCOUNT_ID",
+            "workspace_id": "$ANTHROPIC_WORKSPACE_ID"
+          }
+          JSON
+          )
+          CODE=$(printf '%s' "$RESP" | tail -1)
+          BODY=$(printf '%s' "$RESP" | sed '$d')
+
+          if [ "$CODE" != "200" ]; then
+            echo "$BODY" | jq . || echo "$BODY"
+            echo "::error::Troca reprovada (HTTP $CODE). A API nao diz qual checagem falhou de proposito; o motivo real fica em https://platform.claude.com/settings/workload-identity-federation?tab=history"
+            exit 1
+          fi
+
+          # Nunca imprima o access_token: ele vale como chave ate expirar.
+          echo "$BODY" | jq '{token_type, expires_in, access_token: "<redigido>"}'
+          echo "Federacao de pe. Token de vida curta emitido com sucesso."
