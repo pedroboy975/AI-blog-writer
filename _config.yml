@@ -6,6 +6,8 @@ lang: pt-BR
 # e a canonical sai errada. Dominio proprio ou repo <usuario>.github.io: deixe baseurl vazio.
 url: https://pedroboy975.github.io
 baseurl: /AI-blog-writer
+# Usado pelo /estudio.html para linkar o formulario de execucao do Actions.
+repo: https://github.com/pedroboy975/AI-blog-writer
 # Sem theme remoto: o layout e o CSS sao daqui (_layouts/default.html + assets/style.css).
 defaults:
   - scope: { path: "" }

@@ -4,7 +4,7 @@ import { parseArgs } from 'node:util';
 import { parse } from 'yaml';
 import { PostMetadataSchema, VerdictSchema, verdictGate, type PostMetadata, type Verdict } from './schemas.ts';
 import { loadGlossary, runAllLints, type QualityReport } from './quality/lints.ts';
-import { planSections } from './outline.ts';
+import { planSections, SIZE_SCALE, type Size } from './outline.ts';
 import { writeArticle } from './writer.ts';
 import { makeOutputs } from './outputs.ts';
 import { allRuns, loadRun, saveRun } from './state.ts';
@@ -90,18 +90,22 @@ async function cmdLint(mdPath: string, verdictPath: string, checkLinks: boolean)
   process.exit(report.ok ? 0 : 1);
 }
 
-async function cmdCreate(verdictPath: string, checkLinks: boolean, withOutputs: boolean) {
+async function cmdCreate(verdictPath: string, checkLinks: boolean, withOutputs: boolean, size: Size) {
   const v = loadVerdict(verdictPath);
   const meta = buildMetadata(v);
   const posts = listPosts();
+
+  // O workflow precisa do slug para nomear o veredito e o branch. Idioma padrao do Actions.
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `slug=${meta.slug}\n`, 'utf8');
 
   // Canibalizacao: assunto parecido demais pede update, nao post novo.
   for (const d of similar(v.subject, posts).filter((x) => x.slug !== meta.slug))
     console.error(`  aviso: "${d.slug}" cobre assunto parecido (${d.score.toFixed(2)}). Considere update em vez de create.`);
 
   const run = loadRun(meta.slug, verdictPath);
-  const plan = planSections(v);
-  console.log(`\nEscrevendo "${v.subject}" - ${plan.length} secoes\n`);
+  const plan = planSections(v, size);
+  const budget = plan.reduce((s, p) => s + p.wordBudget, 0);
+  console.log(`\nEscrevendo "${v.subject}" - ${plan.length} secoes, ~${budget} palavras (${size})\n`);
 
   const res = await writeArticle(v, plan, run);
   const md = frontmatter(meta) + `# ${meta.title}\n\n> ${v.oneLiner}\n\n` + res.markdown + sourcesBlock(v);
@@ -212,14 +216,16 @@ const { values, positionals } = parseArgs({
     outputs: { type: 'boolean', default: false },
     direct: { type: 'boolean', default: false },
     force: { type: 'boolean', default: false },
+    size: { type: 'string', default: 'medio' },
   },
 });
+if (!(values.size in SIZE_SCALE)) fail(`--size aceita ${Object.keys(SIZE_SCALE).join(' | ')}, nao "${values.size}"`);
 const [cmd, a, b] = positionals;
 
 switch (cmd) {
   case 'create':
     if (!a) exitUsage();
-    await cmdCreate(a, values.links, values.outputs);
+    await cmdCreate(a, values.links, values.outputs, values.size as Size);
     break;
   case 'lint':
     if (!a || !values.verdict) exitUsage();
@@ -252,7 +258,7 @@ switch (cmd) {
 
 function exitUsage(): never {
   console.log(`
-  ai-blog create <verdicts/x.yaml> [--links] [--outputs]
+  ai-blog create <verdicts/x.yaml> [--links] [--outputs] [--size curto|medio|longo]
   ai-blog lint <posts/x.md> --verdict <verdicts/x.yaml> [--links]
   ai-blog publish <slug> --verdict <verdicts/x.yaml> [--direct --force]
   ai-blog outputs <slug> --verdict <verdicts/x.yaml>

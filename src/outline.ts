@@ -2,11 +2,24 @@ import type { SectionPlan, Verdict } from './schemas.ts';
 
 const refs = (v: Verdict) => v.evidence.map((e) => e.id);
 
+/** Tamanho pedido no formulario. Escala o orcamento de palavras, nao o numero de secoes:
+ *  cortar secao muda o formato do artigo, encurtar secao so muda o folego. */
+export const SIZE_SCALE = { curto: 0.65, medio: 1, longo: 1.45 } as const;
+export type Size = keyof typeof SIZE_SCALE;
+
+/** O schema aceita 120..600 palavras por secao. Escalar sem prender estoura o Zod. */
+const clamp = (n: number) => Math.min(600, Math.max(120, Math.round(n)));
+
 /**
  * Estrategista deterministico: o formato sai da `category`, nao de um LLM.
  * Nunca mais de 6 H2s.
  */
-export function planSections(v: Verdict): SectionPlan[] {
+export function planSections(v: Verdict, size: Size = 'medio'): SectionPlan[] {
+  const scale = SIZE_SCALE[size];
+  return basePlan(v).map((s) => ({ ...s, wordBudget: clamp(s.wordBudget * scale) }));
+}
+
+function basePlan(v: Verdict): SectionPlan[] {
   const all = refs(v);
 
   if (v.category === 'tactic')

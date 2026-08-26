@@ -8,6 +8,13 @@ export const EvidenceSchema = z.object({
   ref: z.string().min(3),
 });
 
+/**
+ * Lista opcional em YAML: `dealbreakers:` sem item nenhum embaixo faz o parser
+ * devolver null, nao []. Sem isto o schema reprova com "expected array, received
+ * null", que nao diz a ninguem o que fazer.
+ */
+const listaOpcional = z.preprocess((x) => x ?? [], z.array(z.string()));
+
 export const VerdictSchema = z.object({
   subject: z.string().min(3),
   category: z.enum(['tool', 'model', 'workflow', 'tactic']),
@@ -17,9 +24,9 @@ export const VerdictSchema = z.object({
   testedOn: z.iso.date(),
   testContext: z.string().min(20),
   evidence: z.array(EvidenceSchema).min(2),
-  dealbreakers: z.array(z.string()),
+  dealbreakers: listaOpcional,
   whoShouldnt: z.string().min(15),
-  alternatives: z.array(z.string()).max(3),
+  alternatives: listaOpcional.pipe(z.array(z.string()).max(3)),
   priceChecked: z.object({ value: z.string(), at: z.iso.date() }),
   keyword: z.string().min(3),
   /** SEO: escrito pelo humano, validado deterministicamente por PostMetadataSchema. */

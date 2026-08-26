@@ -82,6 +82,30 @@ Três páginas são geradas do disco por `ai-blog site`, nunca por LLM:
 O histórico de mudanças da página viva sai de `verdicts/qual-ia-usar-changelog.md`,
 escrito à mão ("out/2026 — troquei a recomendação de transcrição. Motivo: …").
 
+## O estúdio (`/estudio.html`)
+
+Formulário para montar o veredito sem escrever YAML à mão, com conferência ao vivo
+das regras que reprovam na hora de gerar: título de 40 a 65 caracteres, descrição de
+120 a 160, mínimo de 2 referências, preço conferido há menos de 30 dias.
+
+**O Pages não tem área restrita.** Ele serve arquivo estático, público, para qualquer
+um. Senha em JavaScript aparece no código-fonte. Então a divisão é:
+
+| onde | o quê | quem pode |
+| :--- | :--- | :--- |
+| `/estudio.html` | monta e valida o YAML, no navegador | qualquer um — não há segredo na página |
+| Actions `Novo artigo` | escreve o artigo com a chave do cofre | só com permissão de escrita no repositório |
+| merge do PR | publica na página principal | você |
+
+A `ANTHROPIC_API_KEY` fica em **Settings → Secrets and variables → Actions**, nunca no
+navegador. O formulário não chama a API: ele produz texto que você cola no Actions.
+
+O workflow escreve o artigo, roda os lints com checagem de link, regenera as três
+páginas e abre um PR com o relatório no corpo. Nada vai ao ar antes do merge.
+
+`ai-blog create --size curto|medio|longo` escala o orçamento de palavras de cada
+seção; o número de seções não muda, porque isso é o formato do artigo.
+
 ## Fases
 
 | fase | onde | como foi feito |

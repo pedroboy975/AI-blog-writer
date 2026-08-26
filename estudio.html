@@ -1,0 +1,348 @@
+---
+title: Estúdio
+description: Monta e valida o veredito que vira artigo. A geração roda no GitHub Actions, com acesso restrito.
+---
+
+<h1>Estúdio</h1>
+
+<p class="lede">Preencha o veredito aqui. Esta página só monta e confere o YAML — ela não gera nada e não guarda nada. Quem escreve o artigo é o GitHub Actions, com a chave da API no cofre do repositório.</p>
+
+<div class="empty" style="margin-top:0">
+  <strong>Esta página é pública.</strong> Ela não tem segredo nenhum: é um formatador de texto que roda no seu navegador. O que é restrito é o passo seguinte — disparar o Actions exige permissão de escrita no repositório, e é o GitHub que verifica isso.
+</div>
+
+<form id="f" novalidate>
+
+  <fieldset>
+    <legend>O artigo</legend>
+
+    <label for="subject">Tópico <span class="req">obrigatório</span></label>
+    <input id="subject" placeholder="Make ou n8n para automatizar sem programar">
+    <p class="hint">Vira o slug e o nome do arquivo.</p>
+
+    <div class="row">
+      <div>
+        <label for="category">Tipo de artigo</label>
+        <select id="category">
+          <option value="tool">tool — review de ferramenta</option>
+          <option value="workflow">workflow — passo a passo de automação</option>
+          <option value="tactic">tactic — tática curta</option>
+        </select>
+      </div>
+      <div>
+        <label for="size">Tamanho</label>
+        <select id="size">
+          <option value="curto">curto</option>
+          <option value="medio" selected>médio</option>
+          <option value="longo">longo</option>
+        </select>
+        <p class="hint">Repita esta escolha no Actions.</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="verdict">Veredito</label>
+        <select id="verdict">
+          <option value="use">use</option>
+          <option value="use_com_ressalva" selected>use com ressalva</option>
+          <option value="evite">evite</option>
+          <option value="ainda_nao">ainda não</option>
+        </select>
+      </div>
+      <div>
+        <label for="keyword">Palavra-chave</label>
+        <input id="keyword" placeholder="Make ou n8n">
+        <p class="hint">Deve aparecer nos 30 primeiros caracteres do título.</p>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>A sua voz</legend>
+    <p class="hint">Nada aqui é gerado pelo modelo. É o que o motor recebe pronto e não tem permissão de inventar.</p>
+
+    <label for="oneLiner">Frase do veredito <span class="req">obrigatório</span> <span class="count" id="c-oneLiner"></span></label>
+    <textarea id="oneLiner" rows="2" placeholder="Comece no Make e só troque para o n8n quando a conta de créditos doer mais que a curva de aprendizado."></textarea>
+
+    <label for="title">Título <span class="req">obrigatório</span> <span class="count" id="c-title"></span></label>
+    <input id="title" placeholder="Make ou n8n: qual escolher para automatizar sem código">
+
+    <label for="description">Descrição <span class="req">obrigatório</span> <span class="count" id="c-description"></span></label>
+    <textarea id="description" rows="3" placeholder="A diferença real está em como cada um cobra. O Make conta cada bloco que roda, o n8n conta a automação inteira. Isso muda a sua conta no fim do mês."></textarea>
+
+    <label for="tags">Tags <span class="count" id="c-tags"></span></label>
+    <input id="tags" placeholder="automação, no-code, make, n8n, produtividade">
+    <p class="hint">Separadas por vírgula. De 3 a 8.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>O teste</legend>
+
+    <div class="row">
+      <div>
+        <label for="testedOn">Testado em</label>
+        <input id="testedOn" type="date">
+        <p class="hint">Mais de 180 dias trava a geração.</p>
+      </div>
+      <div>
+        <label for="priceAt">Preço conferido em</label>
+        <input id="priceAt" type="date">
+        <p class="hint">Mais de 30 dias trava a geração.</p>
+      </div>
+    </div>
+
+    <label for="testContext">Como você testou <span class="req">obrigatório</span></label>
+    <textarea id="testContext" rows="3" placeholder="Comparação dos dois planos de entrada e do modelo de cobrança, conferida direto nas páginas oficiais de preço em agosto de 2026."></textarea>
+
+    <label for="priceValue">Preço encontrado</label>
+    <input id="priceValue" placeholder="Make Free 1.000 créditos/mês; Core US$ 9/mês">
+
+    <label for="whoShouldnt">Para quem isso <em>não</em> serve <span class="req">obrigatório</span></label>
+    <textarea id="whoShouldnt" rows="2" placeholder="Quem nunca montou uma automação e quer resultado no mesmo dia não deve começar pelo n8n."></textarea>
+  </fieldset>
+
+  <fieldset>
+    <legend>Referências <span class="req">mínimo 2</span></legend>
+    <p class="hint">Cada referência vira uma fonte citada no rodapé do artigo. O modelo não pode citar nada que não esteja aqui.</p>
+    <div id="evs"></div>
+    <button type="button" class="btn ghost" id="add-ev">+ Adicionar referência</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Ressalvas <span class="opt">opcional</span></legend>
+
+    <label for="dealbreakers">Dealbreakers</label>
+    <textarea id="dealbreakers" rows="3" placeholder="Um por linha."></textarea>
+
+    <label for="alternatives">Alternativas</label>
+    <textarea id="alternatives" rows="2" placeholder="Uma por linha, no máximo 3."></textarea>
+  </fieldset>
+
+</form>
+
+<h2>Conferência</h2>
+<ul class="checks" id="checks"></ul>
+
+<h2>YAML</h2>
+<div class="acts">
+  <button type="button" class="btn" id="copy">Copiar YAML</button>
+  <a class="btn ghost" id="run" href="{{ site.repo }}/actions/workflows/novo-artigo.yml">Abrir o Actions →</a>
+</div>
+<pre id="out" class="yaml"></pre>
+
+<h2>O que acontece depois</h2>
+<ol>
+  <li>Cole o YAML no campo <em>verdict_yaml</em> do Actions e escolha o mesmo tamanho.</li>
+  <li>O motor escreve o artigo, roda os lints e abre um Pull Request.</li>
+  <li>Você lê o artigo na aba <em>Files changed</em>. Nada foi publicado ainda.</li>
+  <li><strong>O merge é a aprovação.</strong> Ele põe o artigo na página principal e regenera o índice.</li>
+</ol>
+
+{% raw %}
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var iso = function (d) { return new Date(d).toISOString().slice(0, 10); };
+  var days = function (s) { return Math.floor((Date.now() - Date.parse(s)) / 86400000); };
+  var lines = function (s) {
+    return s.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+  };
+
+  // YAML aceita a sintaxe de string do JSON, entao JSON.stringify escapa de graca
+  // aspas, quebra de linha e acento sem eu escrever um escapador.
+  var q = function (s) { return JSON.stringify(String(s == null ? '' : s)); };
+
+  $('testedOn').value = iso(Date.now());
+  $('priceAt').value = iso(Date.now());
+
+  // -------------------------------------------------------------- referências
+  var evs = $('evs');
+
+  function addEv(claim, proof, ref) {
+    var i = evs.children.length + 1;
+    var d = document.createElement('div');
+    d.className = 'ev';
+    d.innerHTML =
+      '<label>Afirmação ' + i + '</label>' +
+      '<input class="ev-claim" placeholder="O Make cobra um crédito para cada ação de módulo executada">' +
+      '<div class="row">' +
+        '<div><label>Tipo de prova</label><select class="ev-proof">' +
+          '<option value="link">link</option><option value="print">print</option>' +
+          '<option value="log">log</option><option value="medicao">medição</option>' +
+          '<option value="experiencia">experiência</option>' +
+        '</select></div>' +
+        '<div><label>Referência</label><input class="ev-ref" placeholder="https://www.make.com/en/pricing"></div>' +
+      '</div>' +
+      '<button type="button" class="btn ghost del">Remover</button>';
+    d.querySelector('.ev-claim').value = claim || '';
+    d.querySelector('.ev-ref').value = ref || '';
+    if (proof) d.querySelector('.ev-proof').value = proof;
+    d.querySelector('.del').addEventListener('click', function () { d.remove(); render(); });
+    evs.appendChild(d);
+  }
+
+  $('add-ev').addEventListener('click', function () { addEv(); render(); });
+  addEv();
+  addEv();
+
+  function readEvs() {
+    return Array.prototype.map.call(evs.querySelectorAll('.ev'), function (d, i) {
+      return {
+        id: 'e' + (i + 1),
+        claim: d.querySelector('.ev-claim').value.trim(),
+        proof: d.querySelector('.ev-proof').value,
+        ref: d.querySelector('.ev-ref').value.trim()
+      };
+    }).filter(function (e) { return e.claim || e.ref; });
+  }
+
+  // ------------------------------------------------------------------ leitura
+  function read() {
+    var tags = $('tags').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+    return {
+      subject: $('subject').value.trim(),
+      category: $('category').value,
+      verdict: $('verdict').value,
+      keyword: $('keyword').value.trim(),
+      oneLiner: $('oneLiner').value.trim(),
+      title: $('title').value.trim(),
+      description: $('description').value.trim(),
+      tags: tags,
+      testedOn: $('testedOn').value,
+      priceAt: $('priceAt').value,
+      testContext: $('testContext').value.trim(),
+      priceValue: $('priceValue').value.trim(),
+      whoShouldnt: $('whoShouldnt').value.trim(),
+      dealbreakers: lines($('dealbreakers').value),
+      alternatives: lines($('alternatives').value).slice(0, 3),
+      evidence: readEvs()
+    };
+  }
+
+  // As mesmas regras de src/schemas.ts. Duplicadas de proposito: aqui elas
+  // avisam enquanto voce digita, la elas bloqueiam. O schema continua sendo
+  // a autoridade -- se as duas discordarem, quem manda e o servidor.
+  function checks(v) {
+    var badQuote = /["“”‘’']/.test(v.title);
+    return [
+      ['Tópico preenchido', v.subject.length >= 3],
+      ['Palavra-chave preenchida', v.keyword.length >= 3],
+      ['Frase do veredito entre 20 e 180 caracteres', v.oneLiner.length >= 20 && v.oneLiner.length <= 180],
+      ['Frase não é rascunho (TODO/preencher/xxx)', !/^(todo|preencher|xxx)/i.test(v.oneLiner)],
+      ['Título entre 40 e 65 caracteres', v.title.length >= 40 && v.title.length <= 65],
+      ['Título sem aspas (elas quebram as OG tags)', !badQuote],
+      ['Palavra-chave nos 30 primeiros caracteres do título',
+        !v.keyword || v.title.slice(0, 30).toLowerCase().indexOf(v.keyword.toLowerCase().split(' ')[0]) >= 0],
+      ['Descrição entre 120 e 160 caracteres', v.description.length >= 120 && v.description.length <= 160],
+      ['De 3 a 8 tags', v.tags.length >= 3 && v.tags.length <= 8],
+      ['Contexto do teste com 20+ caracteres', v.testContext.length >= 20],
+      ['Para quem não serve com 15+ caracteres', v.whoShouldnt.length >= 15],
+      ['Pelo menos 2 referências completas',
+        v.evidence.length >= 2 && v.evidence.every(function (e) { return e.claim.length >= 10 && e.ref.length >= 3; })],
+      ['Preço conferido há no máximo 30 dias', !!v.priceAt && days(v.priceAt) <= 30],
+      ['Testado há no máximo 180 dias', !!v.testedOn && days(v.testedOn) <= 180]
+    ];
+  }
+
+  // -------------------------------------------------------------------- saída
+  function list(name, items, L) {
+    if (!items.length) return L.push(name + ': []'), L.push('');
+    L.push(name + ':');
+    items.forEach(function (i) { L.push('  - ' + q(i)); });
+    L.push('');
+  }
+
+  function yaml(v) {
+    var L = [];
+    L.push('subject: ' + q(v.subject));
+    L.push('category: ' + v.category);
+    L.push('verdict: ' + v.verdict);
+    L.push('keyword: ' + q(v.keyword));
+    L.push('');
+    L.push('oneLiner: ' + q(v.oneLiner));
+    L.push('');
+    L.push('title: ' + q(v.title));
+    L.push('description: ' + q(v.description));
+    L.push('tags: [' + v.tags.map(q).join(', ') + ']');
+    L.push('');
+    L.push('testedOn: ' + v.testedOn);
+    L.push('testContext: ' + q(v.testContext));
+    L.push('');
+    L.push('priceChecked:');
+    L.push('  value: ' + q(v.priceValue));
+    L.push('  at: ' + v.priceAt);
+    L.push('');
+    L.push('evidence:');
+    v.evidence.forEach(function (e) {
+      L.push('  - id: ' + e.id);
+      L.push('    claim: ' + q(e.claim));
+      L.push('    proof: ' + e.proof);
+      L.push('    ref: ' + q(e.ref));
+    });
+    L.push('');
+    // Chave sem item vira null no YAML, nao lista vazia. Emitir [] evita isso.
+    list('dealbreakers', v.dealbreakers, L);
+    list('alternatives', v.alternatives, L);
+    L.push('');
+    L.push('whoShouldnt: ' + q(v.whoShouldnt));
+    return L.join('\n');
+  }
+
+  function render() {
+    var v = read();
+    var cs = checks(v);
+    var ul = $('checks');
+    ul.textContent = '';
+    cs.forEach(function (c) {
+      var li = document.createElement('li');
+      li.className = c[1] ? 'pass' : 'fail';
+      li.textContent = c[0];
+      ul.appendChild(li);
+    });
+
+    var left = cs.filter(function (c) { return !c[1]; }).length;
+    $('copy').disabled = left > 0;
+    $('copy').textContent = left ? left + ' item(ns) a corrigir' : 'Copiar YAML';
+    $('out').textContent = yaml(v);
+
+    [['title', 40, 65], ['description', 120, 160], ['oneLiner', 20, 180]].forEach(function (t) {
+      var n = $(t[0]).value.trim().length;
+      var el = $('c-' + t[0]);
+      el.textContent = n + '/' + t[1] + '-' + t[2];
+      el.className = 'count ' + (n >= t[1] && n <= t[2] ? 'pass' : 'fail');
+    });
+    var nt = v.tags.length;
+    $('c-tags').textContent = nt + '/3-8';
+    $('c-tags').className = 'count ' + (nt >= 3 && nt <= 8 ? 'pass' : 'fail');
+  }
+
+  $('copy').addEventListener('click', function () {
+    var txt = $('out').textContent;
+    var done = function () {
+      $('copy').textContent = 'Copiado';
+      setTimeout(render, 1500);
+    };
+    // clipboard falha em http:// e em navegador antigo; a selecao sempre funciona.
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(txt).then(done, function () { select(); });
+    } else { select(); }
+    function select() {
+      var r = document.createRange();
+      r.selectNodeContents($('out'));
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+      $('copy').textContent = 'Selecionado — use Ctrl+C';
+      setTimeout(render, 2500);
+    }
+  });
+
+  document.addEventListener('input', render);
+  document.addEventListener('change', render);
+  render();
+})();
+</script>
+{% endraw %}

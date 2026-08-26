@@ -1,0 +1,105 @@
+# Estudio: recebe o veredito montado em /estudio.html e devolve um Pull Request.
+#
+# O controle de acesso e do GitHub, nao meu: so quem tem permissao de escrita
+# neste repositorio consegue disparar um workflow_dispatch. A ANTHROPIC_API_KEY
+# vive em Settings > Secrets e nunca chega no navegador de ninguem.
+#
+# Aprovar = dar merge no PR. O merge e o que publica na pagina principal.
+name: Novo artigo
+
+on:
+  workflow_dispatch:
+    inputs:
+      verdict_yaml:
+        description: "Cole o YAML gerado em /estudio.html"
+        required: true
+        type: string
+      tamanho:
+        description: "Tamanho do artigo"
+        required: true
+        default: medio
+        type: choice
+        options: [curto, medio, longo]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: novo-artigo
+  cancel-in-progress: false
+
+jobs:
+  escrever:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Falhar aqui, com esta frase, e melhor que falhar 40 linhas adiante
+      # com um 401 cru da API.
+      - name: Conferir a chave
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::Falta o secret ANTHROPIC_API_KEY. Settings > Secrets and variables > Actions > New repository secret."
+            exit 1
+          fi
+
+      # O YAML entra por env, nunca interpolado direto no shell: conteudo de
+      # formulario dentro de um script e injecao de comando esperando acontecer.
+      - name: Gravar o veredito
+        env:
+          VERDICT_YAML: ${{ inputs.verdict_yaml }}
+        run: |
+          mkdir -p verdicts
+          printf '%s\n' "$VERDICT_YAML" > verdicts/_intake.yaml
+          echo "--- veredito recebido:"
+          cat verdicts/_intake.yaml
+
+      - name: Escrever o artigo
+        id: escrever
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -o pipefail
+          npx tsx src/cli.ts create verdicts/_intake.yaml --links --size "${{ inputs.tamanho }}" 2>&1 | tee relatorio.txt
+
+      - name: Abrir o Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLUG: ${{ steps.escrever.outputs.slug }}
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          mv verdicts/_intake.yaml "verdicts/$SLUG.yaml"
+          npx tsx src/cli.ts site
+
+          git checkout -B "post/$SLUG"
+          git add "posts/$SLUG.md" "verdicts/$SLUG.yaml" index.md qual-ia-usar.md glossario.md
+          git commit -m "post: $SLUG"
+          git push -f -u origin "post/$SLUG"
+
+          # O relatorio de lint vai no corpo do PR: aprovar sem abrir o log
+          # so funciona se o motivo estiver na mesma tela do botao de merge.
+          {
+            echo "Gerado pelo estudio. Tamanho: **${{ inputs.tamanho }}**."
+            echo
+            echo "Leia o artigo na aba *Files changed* antes do merge. O merge publica."
+            echo
+            echo '```'
+            sed -n '/Relatorio:/,/^$/p' relatorio.txt || true
+            echo '```'
+          } > corpo.md
+
+          gh pr create --base main --head "post/$SLUG" \
+            --title "post: $SLUG" --body-file corpo.md
