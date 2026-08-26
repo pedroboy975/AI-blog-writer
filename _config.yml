@@ -1,0 +1,8 @@
+title: IA e automacao, testado antes de recomendar
+description: Reviews com evidencia declarada e data de conferencia.
+theme: jekyll-theme-cayman
+# Sem layout no frontmatter dos posts: o default abaixo aplica o tema em tudo.
+defaults:
+  - scope: { path: "" }
+    values: { layout: default }
+exclude: [node_modules, src, tests, runs, verdicts, glossary, package.json, package-lock.json, tsconfig.json, README.md, "posts/*.newsletter.md", "posts/*.roteiro.md"]

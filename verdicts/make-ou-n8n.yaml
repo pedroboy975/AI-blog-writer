@@ -1,0 +1,70 @@
+subject: Make ou n8n para automatizar sem programar
+category: tool
+verdict: use_com_ressalva
+keyword: Make ou n8n
+
+# ATENCAO: esta frase e sua. Reescreva na sua voz antes de publicar.
+oneLiner: Comece no Make e so troque para o n8n quando a conta de creditos doer mais que a curva de aprendizado.
+
+testedOn: 2026-08-24
+testContext: Comparacao dos dois planos de entrada e do modelo de cobranca, conferida direto nas paginas oficiais de preco e na documentacao de cada produto em agosto de 2026.
+
+title: Make ou n8n - qual escolher para automatizar sem codigo
+description: A diferenca real esta em como cada um cobra. O Make conta cada bloco que roda, o n8n conta a automacao inteira. Isso muda a sua conta no fim do mes.
+tags: [automacao, no-code, make, n8n, produtividade]
+
+priceChecked:
+  value: "Make Free 1.000 creditos/mes; Make Core US$ 9/mes por 10.000 creditos; n8n Starter EUR 20/mes por 2.500 execucoes"
+  at: 2026-08-26
+
+evidence:
+  - id: e1
+    claim: O Make cobra um credito para cada acao de modulo executada dentro do cenario
+    proof: link
+    ref: https://www.make.com/en/pricing
+
+  - id: e2
+    claim: O n8n cobra uma execucao por rodada completa do workflow, nao importa quantos nos ele tenha
+    proof: link
+    ref: https://n8n.io/pricing/
+
+  - id: e3
+    claim: Um cenario Make com quatro bundles e tres modulos de acao consome doze creditos numa unica rodada
+    proof: link
+    ref: https://academy-content.make.com/courses/make-foundation-operations-credits/02-credit-consumption-in-make/
+
+  - id: e4
+    claim: O modulo de gatilho do Make sempre consome um credito por rodada, e roteador e filtro nao consomem credito nenhum
+    proof: link
+    ref: https://academy-content.make.com/courses/make-foundation-operations-credits/02-credit-consumption-in-make/
+
+  - id: e5
+    claim: No n8n voce precisa escrever expressoes entre chaves duplas para puxar dados de um no anterior, como {{ $json.body.city }}
+    proof: link
+    ref: https://docs.n8n.io/data/expressions/
+
+  - id: e6
+    claim: O plano gratuito do Make da 1.000 creditos por mes e o Core custa 9 dolares por mes com 10.000 creditos
+    proof: link
+    ref: https://www.make.com/en/pricing
+
+  - id: e7
+    claim: O plano de entrada do n8n na nuvem custa 20 euros por mes e inclui 2.500 execucoes com 5 execucoes simultaneas
+    proof: link
+    ref: https://n8n.io/pricing/
+
+  - id: e8
+    claim: A versao Community do n8n e gratuita para instalar no seu proprio servidor, sem limite de execucoes
+    proof: link
+    ref: https://n8n.io/pricing/
+
+dealbreakers:
+  - Automacao que processa listas longas no Make multiplica creditos por item e esvazia o plano rapido
+  - O n8n exige escrever expressoes com chaves duplas, o que trava quem nunca viu codigo
+  - O n8n so fica gratuito de verdade se voce mantiver um servidor proprio
+
+whoShouldnt: Quem nunca montou uma automacao e quer resultado no mesmo dia nao deve comecar pelo n8n. Quem processa listas de centenas de itens todo dia nao deve ficar no Make.
+
+alternatives:
+  - Zapier para quem quer o caminho mais curto e aceita pagar mais por rodada
+  - Power Automate para quem ja vive dentro do Microsoft 365
