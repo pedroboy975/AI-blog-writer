@@ -1,7 +1,12 @@
-title: IA e automacao, testado antes de recomendar
-description: Reviews com evidencia declarada e data de conferencia.
-theme: jekyll-theme-cayman
-# Sem layout no frontmatter dos posts: o default abaixo aplica o tema em tudo.
+# O title e o wordmark no topo de toda pagina. Troque pelo nome do seu blog.
+title: Testado antes de recomendar
+description: Reviews de IA e automacao com evidencia declarada e data de conferencia.
+lang: pt-BR
+# Site de projeto (github.io/<repo>) precisa de baseurl, senao todo link cai em 404
+# e a canonical sai errada. Dominio proprio ou repo <usuario>.github.io: deixe baseurl vazio.
+url: https://pedroboy975.github.io
+baseurl: /AI-blog-writer
+# Sem theme remoto: o layout e o CSS sao daqui (_layouts/default.html + assets/style.css).
 defaults:
   - scope: { path: "" }
     values: { layout: default }

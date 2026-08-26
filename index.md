@@ -2,14 +2,17 @@
 title: Artigos
 ---
 
-# IA e automacao, testado antes de recomendar
+<h1>Testado antes de recomendar</h1>
 
-Cada artigo aqui sai de um veredito com evidencia declarada. Nada e recomendado sem teste, e toda pagina mostra a data da ultima conferencia.
+<p class="lede">Cada artigo sai de um veredito com evidencia declarada. Nada e recomendado sem teste, e toda pagina mostra a data da ultima conferencia.</p>
 
-[Qual IA usar](qual-ia-usar.html) - [Glossario](glossario.html)
-
-### [Make ou n8n - qual escolher para automatizar sem codigo](posts/make-ou-n8n-para-automatizar-sem-programar.html)
-
-A diferenca real esta em como cada um cobra. O Make conta cada bloco que roda, o n8n conta a automacao inteira. Isso muda a sua conta no fim do mes.
-
-<small>2026-08-26 - conferido em 2026-08-26</small>
+<ul class="posts">
+  <li>
+    <h2><a href="{{ '/posts/make-ou-n8n-para-automatizar-sem-programar.html' | relative_url }}">Make ou n8n - qual escolher para automatizar sem codigo</a></h2>
+    <p>A diferenca real esta em como cada um cobra. O Make conta cada bloco que roda, o n8n conta a automacao inteira. Isso muda a sua conta no fim do mes.</p>
+    <p class="kicker">
+      <span class="badge v-use_com_ressalva">use com ressalva</span>
+      <span>conferido em <time datetime="2026-08-26">26/08/2026</time></span>
+    </p>
+  </li>
+</ul>

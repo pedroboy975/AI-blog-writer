@@ -7,6 +7,8 @@ import { VerdictSchema, type Verdict } from './schemas.ts';
 export type PostRef = {
   slug: string; title: string; description: string; date: string;
   tags: string[]; verifiedAt: string; staleAfterDays: number; path: string;
+  /** O veredito vira selo no site. Sem ele, a pagina esconde o dado mais importante do post. */
+  verdict: string;
 };
 
 const DAY = 86_400_000;
@@ -34,6 +36,7 @@ export function listPosts(dir = 'posts'): PostRef[] {
         verifiedAt: String(fm.verifiedAt ?? fm.date ?? ''),
         staleAfterDays: Number(fm.staleAfterDays ?? 120),
         path: `${dir}/${f}`,
+        verdict: String(fm.verdict ?? ''),
       } satisfies PostRef;
     })
     .filter((p): p is PostRef => p !== null)
@@ -84,19 +87,39 @@ const listVerdicts = (dir = 'verdicts'): Verdict[] =>
         .filter((r) => r.success)
         .map((r) => r.data);
 
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/** ISO -> dd/mm/aaaa. Mesmo formato que o layout usa, sem depender de locale. */
+const br = (iso: string) => iso.split('-').reverse().join('/');
+
+const VERDICT_LABEL: Record<string, string> = {
+  use: 'use', use_com_ressalva: 'use com ressalva', evite: 'evite', ainda_nao: 'ainda nao',
+};
+
+const badge = (v: string) => (v ? `<span class="badge v-${v}">${VERDICT_LABEL[v] ?? v}</span>` : '');
+
 const staleTag = (p: PostRef) =>
-  Date.parse(p.verifiedAt) + p.staleAfterDays * DAY < Date.now() ? ' _(revisao pendente)_' : '';
+  Date.parse(p.verifiedAt) + p.staleAfterDays * DAY < Date.now() ? ' <span class="stale">- revisao vencida</span>' : '';
 
 function indexPage(posts: PostRef[]): string {
-  const items = posts.length
-    ? posts.map((p) => `### [${p.title}](${p.path.replace(/\.md$/, '.html')})\n\n${p.description}\n\n<small>${p.date} - conferido em ${p.verifiedAt}${staleTag(p)}</small>`).join('\n\n---\n\n')
-    : '_Nenhum post publicado ainda._';
+  const items = posts.map((p) =>
+    [
+      '  <li>',
+      // relative_url em vez de caminho cru: com baseurl de site de projeto, link cru da 404.
+      `    <h2><a href="{{ '/${p.path.replace(/\.md$/, '.html')}' | relative_url }}">${esc(p.title)}</a></h2>`,
+      `    <p>${esc(p.description)}</p>`,
+      '    <p class="kicker">',
+      `      ${badge(p.verdict)}`,
+      `      <span>conferido em <time datetime="${p.verifiedAt}">${br(p.verifiedAt)}</time>${staleTag(p)}</span>`,
+      '    </p>',
+      '  </li>',
+    ].join('\n')
+  );
+
   return [
     '---', 'title: Artigos', '---', '',
-    '# IA e automacao, testado antes de recomendar', '',
-    'Cada artigo aqui sai de um veredito com evidencia declarada. Nada e recomendado sem teste, e toda pagina mostra a data da ultima conferencia.', '',
-    '[Qual IA usar](qual-ia-usar.html) - [Glossario](glossario.html)', '',
-    items, '',
+    '<h1>Testado antes de recomendar</h1>', '',
+    '<p class="lede">Cada artigo sai de um veredito com evidencia declarada. Nada e recomendado sem teste, e toda pagina mostra a data da ultima conferencia.</p>', '',
+    posts.length ? `<ul class="posts">\n${items.join('\n')}\n</ul>` : '<p>Nenhum post publicado ainda.</p>', '',
   ].join('\n');
 }
 
@@ -105,7 +128,7 @@ function qualIaUsarPage(verdicts: Verdict[]): string {
   const rows = models
     .flatMap((v) => v.tasks.map((t) => ({ task: t, v })))
     .sort((a, b) => a.task.localeCompare(b.task))
-    .map((r) => `| ${r.task} | ${r.v.subject} | ${r.v.oneLiner} | ${r.v.priceChecked.at} |`);
+    .map((r) => `| ${r.task} | ${r.v.subject} ${badge(r.v.verdict)} | ${r.v.oneLiner} | ${br(r.v.priceChecked.at)} |`);
   const changelog = existsSync('verdicts/qual-ia-usar-changelog.md')
     ? readFileSync('verdicts/qual-ia-usar-changelog.md', 'utf8')
     : '_Sem mudancas registradas ainda._';
@@ -121,13 +144,16 @@ function qualIaUsarPage(verdicts: Verdict[]): string {
   ].join('\n');
 }
 
+/** Lista de definicao, nao tabela: definicao longa em celula de tabela nao cabe em celular. */
 function glossarioPage(): string {
-  const rows = loadGlossary().map((t) => `| **${t.termo}** | ${t.definicaoCurta} |`);
+  const items = loadGlossary()
+    .sort((a, b) => a.termo.localeCompare(b.termo))
+    .map((t) => `  <dt id="${t.termo.toLowerCase().replace(/[^a-z0-9]+/g, '-')}">${esc(t.termo)}</dt>\n  <dd>${esc(t.definicaoCurta)}</dd>`);
   return [
     '---', 'title: Glossario', '---', '',
-    '# Glossario', '',
-    'Termo tecnico que aparece nos artigos, explicado sem jargao.', '',
-    '| Termo | O que e |', '| :--- | :--- |', ...rows, '',
+    '<h1>Glossario</h1>', '',
+    '<p class="lede">Termo tecnico que aparece nos artigos, explicado sem jargao.</p>', '',
+    `<dl>\n${items.join('\n')}\n</dl>`, '',
   ].join('\n');
 }
 

@@ -35,6 +35,7 @@ function buildMetadata(v: Verdict): PostMetadata {
   const meta = {
     title: v.title,
     description: v.description,
+    verdict: v.verdict,
     slug: slugify(v.subject),
     date: new Date().toISOString().slice(0, 10),
     tags: v.tags,
@@ -54,7 +55,7 @@ function buildMetadata(v: Verdict): PostMetadata {
 }
 
 const frontmatter = (m: PostMetadata) =>
-  ['---', `title: "${m.title}"`, `description: "${m.description}"`, `slug: ${m.slug}`, `date: ${m.date}`,
+  ['---', `title: "${m.title}"`, `description: "${m.description}"`, `verdict: ${m.verdict}`, `slug: ${m.slug}`, `date: ${m.date}`,
    `tags: [${m.tags.join(', ')}]`, `verifiedAt: ${m.verifiedAt}`, `staleAfterDays: ${m.staleAfterDays}`, '---', ''].join('\n');
 
 /** A CLI nao renderiza o artigo. Renderizar 1400 palavras garante aprovacao sem leitura. */

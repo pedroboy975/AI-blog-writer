@@ -35,6 +35,8 @@ export type Evidence = z.infer<typeof EvidenceSchema>;
 export const PostMetadataSchema = z.object({
   title: z.string().min(40).max(65).refine((t) => !/["“”‘’']/.test(t), 'aspas quebram OG tags'),
   description: z.string().min(120).max(160),
+  /** O veredito no frontmatter: e o selo que o site mostra no card e no topo do post. */
+  verdict: z.string().min(3),
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'slug: so minusculas, numeros e hifen'),
   date: z.iso.date(),
   tags: z.array(z.string()).min(3).max(8),

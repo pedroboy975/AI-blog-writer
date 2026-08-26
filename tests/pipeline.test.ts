@@ -6,7 +6,7 @@ import { similar, stalePosts, suggestLinks, type PostRef } from '../src/site.ts'
 const post = (over: Partial<PostRef>): PostRef => ({
   slug: 'make-ou-n8n', title: 'Make ou n8n - qual escolher para automatizar', description: '',
   date: '2026-01-01', tags: ['make', 'n8n'], verifiedAt: '2026-01-01', staleAfterDays: 120,
-  path: 'posts/make-ou-n8n.md', ...over,
+  path: 'posts/make-ou-n8n.md', verdict: 'use_com_ressalva', ...over,
 });
 
 const NOW = Date.parse('2026-08-26');
