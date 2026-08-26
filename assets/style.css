@@ -73,7 +73,14 @@ header.site {
   text-decoration: none;
 }
 
-header.site nav { display: flex; gap: 1rem; }
+header.site nav { display: flex; gap: 1.25rem; }
+
+/* Alvo de toque de 24px+ (WCAG 2.5.8) sem mexer no layout: padding entra, margem tira. */
+header.site nav a,
+footer.site a {
+  padding-block: 0.7rem;
+  margin-block: -0.7rem;
+}
 
 footer.site {
   margin-top: 5rem;
@@ -201,6 +208,16 @@ th { font-weight: 600; white-space: nowrap; }
 .v-ainda_nao { color: var(--slate); }
 
 .stale { color: var(--warn); }
+
+/* Estado vazio: e uma frase para o leitor, nao um espaco em branco. */
+.empty {
+  margin: 2rem 0;
+  padding: 1.25rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font: 400 1rem/1.55 var(--sans);
+}
 
 /* -------------------------------------------------------------------- index */
 

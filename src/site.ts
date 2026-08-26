@@ -119,7 +119,11 @@ function indexPage(posts: PostRef[]): string {
     '---', 'title: Artigos', '---', '',
     '<h1>Testado antes de recomendar</h1>', '',
     '<p class="lede">Cada artigo sai de um veredito com evidencia declarada. Nada e recomendado sem teste, e toda pagina mostra a data da ultima conferencia.</p>', '',
-    posts.length ? `<ul class="posts">\n${items.join('\n')}\n</ul>` : '<p>Nenhum post publicado ainda.</p>', '',
+    // Estado vazio fala com o leitor, nao com quem mantem o repositorio.
+    posts.length
+      ? `<ul class="posts">\n${items.join('\n')}\n</ul>`
+      : '<p class="empty">Nenhum artigo publicado ainda. O primeiro sai quando o primeiro teste terminar.</p>',
+    '',
   ].join('\n');
 }
 
@@ -131,7 +135,7 @@ function qualIaUsarPage(verdicts: Verdict[]): string {
     .map((r) => `| ${r.task} | ${r.v.subject} ${badge(r.v.verdict)} | ${r.v.oneLiner} | ${br(r.v.priceChecked.at)} |`);
   const changelog = existsSync('verdicts/qual-ia-usar-changelog.md')
     ? readFileSync('verdicts/qual-ia-usar-changelog.md', 'utf8')
-    : '_Sem mudancas registradas ainda._';
+    : '<p class="empty">Nenhuma recomendacao mudou ate agora. Quando mudar, o motivo fica registrado aqui.</p>';
 
   return [
     '---', 'title: Qual IA usar', '---', '',
@@ -139,7 +143,7 @@ function qualIaUsarPage(verdicts: Verdict[]): string {
     `Esta pagina nao e um post. Ela muda quando o teste muda. Ultima geracao: ${today()}.`, '',
     rows.length
       ? ['| Tarefa | Recomendacao | Por que | Conferido em |', '| :--- | :--- | :--- | :--- |', ...rows].join('\n')
-      : '_Nenhum veredito `category: model` com `tasks` preenchido ainda._',
+      : '<p class="empty">Ainda nao testei modelos o bastante para recomendar um por tarefa. A tabela aparece aqui quando o primeiro teste fechar.</p>',
     '', '## O que mudou', '', changelog, '',
   ].join('\n');
 }
