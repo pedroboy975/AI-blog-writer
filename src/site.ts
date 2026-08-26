@@ -92,13 +92,17 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const br = (iso: string) => iso.split('-').reverse().join('/');
 
 const VERDICT_LABEL: Record<string, string> = {
-  use: 'use', use_com_ressalva: 'use com ressalva', evite: 'evite', ainda_nao: 'ainda nao',
+  use: 'use', use_com_ressalva: 'use com ressalva', evite: 'evite', ainda_nao: 'ainda não',
 };
+
+/** Acento vira letra base antes do slug, senao `alucinação` sai como id `alucina-o`. */
+const slug = (s: string) =>
+  s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 const badge = (v: string) => (v ? `<span class="badge v-${v}">${VERDICT_LABEL[v] ?? v}</span>` : '');
 
 const staleTag = (p: PostRef) =>
-  Date.parse(p.verifiedAt) + p.staleAfterDays * DAY < Date.now() ? ' <span class="stale">- revisao vencida</span>' : '';
+  Date.parse(p.verifiedAt) + p.staleAfterDays * DAY < Date.now() ? ' <span class="stale">— revisão vencida</span>' : '';
 
 function indexPage(posts: PostRef[]): string {
   const items = posts.map((p) =>
@@ -118,7 +122,7 @@ function indexPage(posts: PostRef[]): string {
   return [
     '---', 'title: Artigos', '---', '',
     '<h1>Testado antes de recomendar</h1>', '',
-    '<p class="lede">Cada artigo sai de um veredito com evidencia declarada. Nada e recomendado sem teste, e toda pagina mostra a data da ultima conferencia.</p>', '',
+    '<p class="lede">Cada artigo sai de um veredito com evidência declarada. Nada é recomendado sem teste, e toda página mostra a data da última conferência.</p>', '',
     // Estado vazio fala com o leitor, nao com quem mantem o repositorio.
     posts.length
       ? `<ul class="posts">\n${items.join('\n')}\n</ul>`
@@ -135,15 +139,15 @@ function qualIaUsarPage(verdicts: Verdict[]): string {
     .map((r) => `| ${r.task} | ${r.v.subject} ${badge(r.v.verdict)} | ${r.v.oneLiner} | ${br(r.v.priceChecked.at)} |`);
   const changelog = existsSync('verdicts/qual-ia-usar-changelog.md')
     ? readFileSync('verdicts/qual-ia-usar-changelog.md', 'utf8')
-    : '<p class="empty">Nenhuma recomendacao mudou ate agora. Quando mudar, o motivo fica registrado aqui.</p>';
+    : '<p class="empty">Nenhuma recomendação mudou até agora. Quando mudar, o motivo fica registrado aqui.</p>';
 
   return [
     '---', 'title: Qual IA usar', '---', '',
     '# Qual IA usar para cada tarefa', '',
-    `Esta pagina nao e um post. Ela muda quando o teste muda. Ultima geracao: ${today()}.`, '',
+    `Esta página não é um post. Ela muda quando o teste muda. Última geração: ${br(today())}.`, '',
     rows.length
-      ? ['| Tarefa | Recomendacao | Por que | Conferido em |', '| :--- | :--- | :--- | :--- |', ...rows].join('\n')
-      : '<p class="empty">Ainda nao testei modelos o bastante para recomendar um por tarefa. A tabela aparece aqui quando o primeiro teste fechar.</p>',
+      ? ['| Tarefa | Recomendação | Por quê | Conferido em |', '| :--- | :--- | :--- | :--- |', ...rows].join('\n')
+      : '<p class="empty">Ainda não testei modelos o bastante para recomendar um por tarefa. A tabela aparece aqui quando o primeiro teste fechar.</p>',
     '', '## O que mudou', '', changelog, '',
   ].join('\n');
 }
@@ -151,12 +155,12 @@ function qualIaUsarPage(verdicts: Verdict[]): string {
 /** Lista de definicao, nao tabela: definicao longa em celula de tabela nao cabe em celular. */
 function glossarioPage(): string {
   const items = loadGlossary()
-    .sort((a, b) => a.termo.localeCompare(b.termo))
-    .map((t) => `  <dt id="${t.termo.toLowerCase().replace(/[^a-z0-9]+/g, '-')}">${esc(t.termo)}</dt>\n  <dd>${esc(t.definicaoCurta)}</dd>`);
+    .sort((a, b) => a.termo.localeCompare(b.termo, 'pt-BR'))
+    .map((t) => `  <dt id="${slug(t.termo)}">${esc(t.termo)}</dt>\n  <dd>${esc(t.definicaoCurta)}</dd>`);
   return [
-    '---', 'title: Glossario', '---', '',
-    '<h1>Glossario</h1>', '',
-    '<p class="lede">Termo tecnico que aparece nos artigos, explicado sem jargao.</p>', '',
+    '---', 'title: Glossário', '---', '',
+    '<h1>Glossário</h1>', '',
+    '<p class="lede">Termo técnico que aparece nos artigos, explicado sem jargão.</p>', '',
     `<dl>\n${items.join('\n')}\n</dl>`, '',
   ].join('\n');
 }

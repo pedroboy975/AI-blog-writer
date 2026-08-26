@@ -1,6 +1,6 @@
 # O title e o wordmark no topo de toda pagina. Troque pelo nome do seu blog.
 title: Testado antes de recomendar
-description: Reviews de IA e automacao com evidencia declarada e data de conferencia.
+description: Reviews de IA e automação com evidência declarada e data de conferência.
 lang: pt-BR
 # Site de projeto (github.io/<repo>) precisa de baseurl, senao todo link cai em 404
 # e a canonical sai errada. Dominio proprio ou repo <usuario>.github.io: deixe baseurl vazio.

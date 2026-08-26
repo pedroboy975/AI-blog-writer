@@ -1,10 +1,10 @@
 ---
-title: "Make ou n8n - qual escolher para automatizar sem codigo"
-description: "A diferenca real esta em como cada um cobra. O Make conta cada bloco que roda, o n8n conta a automacao inteira. Isso muda a sua conta no fim do mes."
+title: "Make ou n8n: qual escolher para automatizar sem código"
+description: "A diferença real está em como cada um cobra. O Make conta cada bloco que roda, o n8n conta a automação inteira. Isso muda a sua conta no fim do mês."
 verdict: use_com_ressalva
 slug: make-ou-n8n-para-automatizar-sem-programar
 date: 2026-08-26
-tags: [automacao, no-code, make, n8n, produtividade]
+tags: [automação, no-code, make, n8n, produtividade]
 verifiedAt: 2026-08-26
 staleAfterDays: 120
 ---

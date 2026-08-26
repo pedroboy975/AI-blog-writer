@@ -1,36 +1,36 @@
-# Glossario versionado. Cresce com o uso: `npm run ai-blog -- glossary add <termo>`.
-# Regra: todo termo daqui que aparecer no artigo precisa de explicacao na 1a ocorrencia.
+# Glossário versionado. Cresce com o uso: `npm run ai-blog -- glossary add <termo>`.
+# Regra: todo termo daqui que aparecer no artigo precisa de explicação na 1a ocorrência.
 
 - termo: API
   definicaoCurta: porta de entrada que um programa abre para outro programa conversar com ele
   aliases: [APIs]
 
 - termo: webhook
-  definicaoCurta: aviso automatico que um site dispara para outro assim que algo acontece
+  definicaoCurta: aviso automático que um site dispara para outro assim que algo acontece
   aliases: [webhooks]
 
 - termo: token
-  definicaoCurta: pedaco de palavra que a inteligencia artificial conta para cobrar e medir texto
+  definicaoCurta: pedaço de palavra que a inteligência artificial conta para cobrar e medir texto
   aliases: [tokens]
 
 - termo: agente
-  definicaoCurta: inteligencia artificial que decide sozinha os passos ate concluir uma tarefa
+  definicaoCurta: inteligência artificial que decide sozinha os passos até concluir uma tarefa
   aliases: [agentes, agente de IA]
 
 - termo: prompt
-  definicaoCurta: instrucao em texto que voce escreve para a inteligencia artificial
+  definicaoCurta: instrução em texto que você escreve para a inteligência artificial
   aliases: [prompts]
 
 - termo: prompt de sistema
-  definicaoCurta: instrucao fixa que define o comportamento da inteligencia artificial em toda conversa
+  definicaoCurta: instrução fixa que define o comportamento da inteligência artificial em toda conversa
   aliases: [system prompt]
 
 - termo: RAG
-  definicaoCurta: tecnica em que a inteligencia artificial busca em documentos seus antes de responder
+  definicaoCurta: técnica em que a inteligência artificial busca em documentos seus antes de responder
   aliases: []
 
 - termo: MCP
-  definicaoCurta: padrao aberto que conecta a inteligencia artificial a ferramentas e dados externos
+  definicaoCurta: padrão aberto que conecta a inteligência artificial a ferramentas e dados externos
   aliases: []
 
 - termo: JSON
@@ -38,19 +38,19 @@
   aliases: []
 
 - termo: endpoint
-  definicaoCurta: endereco especifico de uma API onde voce faz um pedido
+  definicaoCurta: endereço específico de uma API onde você faz um pedido
   aliases: [endpoints]
 
 - termo: payload
-  definicaoCurta: conteudo de dados que viaja dentro de um pedido entre dois sistemas
+  definicaoCurta: conteúdo de dados que viaja dentro de um pedido entre dois sistemas
   aliases: []
 
 - termo: no-code
-  definicaoCurta: ferramenta que monta automacoes arrastando blocos na tela, sem escrever codigo
-  aliases: [nocode, sem codigo]
+  definicaoCurta: ferramenta que monta automações arrastando blocos na tela, sem escrever código
+  aliases: [nocode, sem código, sem codigo]
 
 - termo: self-hosted
-  definicaoCurta: quando voce instala e mantem o programa no seu proprio servidor
+  definicaoCurta: quando você instala e mantém o programa no seu próprio servidor
   aliases: [self-host, auto-hospedado]
 
 - termo: iterador
@@ -58,15 +58,15 @@
   aliases: [iterator]
 
 - termo: roteador
-  definicaoCurta: bloco que separa a automacao em caminhos diferentes conforme uma condicao
+  definicaoCurta: bloco que separa a automação em caminhos diferentes conforme uma condição
   aliases: [router]
 
 - termo: parse
-  definicaoCurta: ler um texto bruto e separar os pedacos uteis dele
+  definicaoCurta: ler um texto bruto e separar os pedaços úteis dele
   aliases: [parsear, parsing]
 
 - termo: LLM
-  definicaoCurta: modelo de linguagem, o motor de texto por tras do ChatGPT e do Claude
+  definicaoCurta: modelo de linguagem, o motor de texto por trás do ChatGPT e do Claude
   aliases: [LLMs, modelo de linguagem]
 
 - termo: fine-tuning
@@ -74,29 +74,29 @@
   aliases: []
 
 - termo: contexto
-  definicaoCurta: tudo que a inteligencia artificial consegue ler de uma vez antes de responder
+  definicaoCurta: tudo que a inteligência artificial consegue ler de uma vez antes de responder
   aliases: [janela de contexto]
 
-- termo: alucinacao
-  definicaoCurta: quando a inteligencia artificial inventa uma informacao e apresenta como verdade
-  aliases: [alucinacoes, alucinar]
+- termo: alucinação
+  definicaoCurta: quando a inteligência artificial inventa uma informação e apresenta como verdade
+  aliases: [alucinações, alucinar]
 
 - termo: vibecoding
-  definicaoCurta: programar descrevendo o que voce quer e deixando a inteligencia artificial escrever o codigo
+  definicaoCurta: programar descrevendo o que você quer e deixando a inteligência artificial escrever o código
   aliases: [vibe coding]
 
-- termo: execucao
-  definicaoCurta: uma rodada completa da automacao, do gatilho ate o ultimo bloco
-  aliases: [execucoes]
+- termo: execução
+  definicaoCurta: uma rodada completa da automação, do gatilho até o último bloco
+  aliases: [execuções]
 
-- termo: operacao
-  definicaoCurta: cada acao individual que um bloco da automacao realiza
-  aliases: [operacoes, credito, creditos]
+- termo: operação
+  definicaoCurta: cada ação individual que um bloco da automação realiza
+  aliases: [operações, crédito, créditos]
 
 - termo: gatilho
-  definicaoCurta: evento que dispara a automacao, como um e-mail novo chegando
+  definicaoCurta: evento que dispara a automação, como um e-mail novo chegando
   aliases: [gatilhos, trigger]
 
 - termo: bundle
-  definicaoCurta: cada item de dados que anda pela automacao, como um e-mail ou uma linha da planilha
+  definicaoCurta: cada item de dados que anda pela automação, como um e-mail ou uma linha da planilha
   aliases: [bundles]
