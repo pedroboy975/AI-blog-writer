@@ -85,10 +85,15 @@ jobs:
       # O JWT do GitHub vale ~5 minutos e um artigo de 6 secoes com retentativa
       # passa disso. O SDK rele o arquivo a cada refresh, entao basta manter o
       # arquivo fresco. Escrevo em .tmp e movo: mv e atomico, ler pela metade nao.
+      #
+      # 45s e nao 120s por causa da protecao de replay por jti no emissor: com
+      # uso unico, um JWT ja trocado nao serve de novo. O SDK tenta renovar em
+      # exp-120s e, se falhar, de novo em exp-30s -- 90s de intervalo. Com o
+      # arquivo trocado a cada 45s, a segunda tentativa nunca pega o mesmo jti.
       - name: Renovar o JWT em segundo plano
         run: |
           nohup bash -c 'while true; do
-            sleep 120
+            sleep 45
             curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
               "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=https://api.anthropic.com" \
               | jq -er .value > "$ANTHROPIC_IDENTITY_TOKEN_FILE.tmp" \
