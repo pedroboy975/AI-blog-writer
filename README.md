@@ -113,14 +113,25 @@ Configurar, uma vez, no [Console da Claude](https://platform.claude.com/settings
 o emissor, a conta de serviço e a regra de federação. Restrinja a regra ao mínimo:
 
 ```
-subject_prefix: repo:pedroboy975/AI-blog-writer:ref:refs/heads/main
+subject_prefix: repo:pedroboy975@261669390/AI-blog-writer@1347531016:ref:refs/heads/main
 audience:       https://api.anthropic.com
-claims:         { repository_owner: pedroboy975, ref: refs/heads/main }
+claims:         { repository_owner: pedroboy975, ref: refs/heads/main,
+                  event_name: workflow_dispatch }
 ```
 
-Um `subject_prefix` frouxo como `repo:pedroboy975/*` casa com **todo** repositório da
-conta e, sem restrição de `ref`, também com runs de pull request vindos de fork —
-qualquer um que abra um PR conseguiria um token.
+Os `@` com números **não são opcionais aqui**. Desde 15/07/2026 o GitHub emite o
+*subject imutável*, que embute o ID da conta e o do repositório; repositórios criados
+depois dessa data já nascem assim. O formato antigo (`repo:owner/repo:ref:…`) que
+aparece na maioria dos tutoriais não casa, e a recusa vem como `match_subject_prefix`
+no [histórico de autenticação](https://platform.claude.com/settings/workload-identity-federation?tab=history).
+Os IDs saem dos próprios claims do token: `repository_owner_id` e `repository_id`.
+
+`event_name: workflow_dispatch` também não é opcional: o assistente pré-preenche `push`,
+e o disparo do estúdio é manual. Com `push` ali, nenhuma execução casa nunca.
+
+Um `subject_prefix` frouxo como `repo:pedroboy975@261669390/*` casa com **todo**
+repositório da conta e, sem restrição de `ref`, também com runs de pull request vindos
+de fork — qualquer um que abra um PR conseguiria um token.
 
 Depois, em **Settings → Secrets and variables → Actions → Variables** deste repositório:
 
